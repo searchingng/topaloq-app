@@ -85,7 +85,8 @@ public class UserServiceImpl implements UserService {
             entity.setRole(dto.getRole());
         }
         if (Objects.nonNull(dto.getPassword())){
-            entity.setPassword(dto.getPassword());
+            String password = DigestUtils.md5Hex(dto.getPassword());
+            entity.setPassword(password);
         }
 
         userRepository.save(entity);

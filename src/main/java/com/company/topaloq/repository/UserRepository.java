@@ -14,6 +14,8 @@ public interface UserRepository extends
 
     Optional<UserEntity> findByLogin(String login);
 
+    Optional<UserEntity> findByEmail(String email);
+
     Optional<UserEntity> findByLoginAndPassword(String Login, String password);
 
 }

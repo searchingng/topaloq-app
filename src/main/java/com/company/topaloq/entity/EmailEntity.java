@@ -1,7 +1,6 @@
 package com.company.topaloq.entity;
 
-import com.company.topaloq.entity.enums.UserRole;
-import com.company.topaloq.entity.enums.UserStatus;
+import com.company.topaloq.entity.enums.EmailStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,28 +8,30 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity(name = "email")
 @Setter
 @Getter
 @NoArgsConstructor
-@Entity(name = "users")
-public class UserEntity {
+public class EmailEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String surname;
-    private String login;
+    private String subject;
+
+    @Column(columnDefinition = "TEXT")
+    private String text;
+
     private String email;
-    private String phone;
-    private String password;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role;
-
-    @Enumerated(EnumType.STRING)
-    private UserStatus status = UserStatus.CREATED;
+    private EmailStatus status = EmailStatus.SENT;
 
     private LocalDateTime createdDate = LocalDateTime.now();
 
+    private LocalDateTime verifiedDate;
 }

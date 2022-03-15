@@ -28,6 +28,20 @@ public class JwtUtil {
         return jwtBuilder.compact();
     }
 
+    public static String generateJwt(Long id){
+        Date issuedAt = new Date();
+        Date expiration = new Date(issuedAt.getTime() + 1000 * 60 * 10);
+
+        JwtBuilder jwtBuilder = Jwts.builder()
+                .setSubject(String.valueOf(id))
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
+                .signWith(SignatureAlgorithm.HS256, key)
+                .setIssuer("Topaloq");
+
+        return jwtBuilder.compact();
+    }
+
     public static UserJwtDTO parseJwt(String jwt){
         Claims claims = Jwts.parser()
                 .setSigningKey(key)
@@ -38,6 +52,17 @@ public class JwtUtil {
         UserRole role = UserRole.valueOf((String) claims.get("role"));
 
         return new UserJwtDTO(id, role);
+    }
+
+    public static Long parseLongJwt(String jwt){
+        Claims claims = Jwts.parser()
+                .setSigningKey(key)
+                .parseClaimsJws(jwt)
+                .getBody();
+
+        Long id = Long.valueOf(claims.getSubject());
+
+        return id;
     }
 
     public static UserJwtDTO getCurrentUser(HttpServletRequest request){

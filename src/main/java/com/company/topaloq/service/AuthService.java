@@ -10,4 +10,6 @@ public interface AuthService {
 
     UserDTO login(AuthDTO dto);
 
+    void verify(String jwt);
+
 }

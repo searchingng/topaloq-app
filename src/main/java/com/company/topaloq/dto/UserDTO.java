@@ -2,6 +2,7 @@ package com.company.topaloq.dto;
 
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.entity.enums.UserRole;
+import com.company.topaloq.entity.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class UserDTO {
     private String phone;
 
     private UserRole role;
+    private UserStatus status;
 
     private LocalDateTime createdDate = LocalDateTime.now();
     private String jwt;
@@ -36,6 +38,7 @@ public class UserDTO {
         this.password = entity.getPassword();
         this.phone = entity.getPhone();
         this.role = entity.getRole();
+        this.status = entity.getStatus();
         this.createdDate = entity.getCreatedDate();
     }
 }
