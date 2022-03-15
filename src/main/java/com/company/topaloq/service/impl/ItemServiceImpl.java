@@ -4,6 +4,8 @@ import com.company.topaloq.dto.ItemDTO;
 import com.company.topaloq.dto.filterDTO.ItemFilterDTO;
 import com.company.topaloq.entity.ItemEntity;
 import com.company.topaloq.entity.UserEntity;
+import com.company.topaloq.entity.enums.ItemStatus;
+import com.company.topaloq.entity.enums.UserRole;
 import com.company.topaloq.exceptions.ForbiddenException;
 import com.company.topaloq.exceptions.ItemNotFoundException;
 import com.company.topaloq.repository.ItemRepository;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -53,8 +56,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemEntity get(Long id) {
-        return itemRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("Item Not Found"));
+        if (id == null || !itemRepository.existsById(id)) {
+            throw new ItemNotFoundException("Item Not Found");
+        }
+        return itemRepository.findById(id).get();
     }
 
     @Override
@@ -81,10 +86,22 @@ public class ItemServiceImpl implements ItemService {
         }
         if (Objects.nonNull(dto.getStatus())){
             item.setStatus(dto.getStatus());
+
+            if (dto.getStatus().equals(ItemStatus.RETURNED))
+                item.setReturnedDate(LocalDateTime.now());
         }
         if (Objects.nonNull(dto.getType())){
             item.setType(dto.getType());
         }
+        itemRepository.save(item);
+    }
+
+    @Override
+    public void returnItem(Long id, Long currnetUserId) {
+        checkPermission(currnetUserId, id);
+        ItemEntity item = get(id);
+        item.setStatus(ItemStatus.RETURNED);
+        item.setReturnedDate(LocalDateTime.now());
         itemRepository.save(item);
     }
 
@@ -107,7 +124,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Page<ItemDTO> filter(Pageable pageable, ItemFilterDTO dto) {
 
-        UserEntity user = userService.get(dto.getUserId());
+        UserEntity user = null;
+        if (Objects.nonNull(dto.getUserId())){
+            user = userService.get(dto.getUserId());
+        }
 
                 SpecificationBuilder<ItemEntity> builder =
                 new SpecificationBuilder<ItemEntity>("id");
@@ -122,6 +142,8 @@ public class ItemServiceImpl implements ItemService {
                 .equal("user", user)
                 .fromDate("createdDate", dto.getFromDate())
                 .toDate("createdDate", dto.getToDate())
+                .fromDate("returnedDate", dto.getFromReturnedDate())
+                .toDate("returnedDate", dto.getToReturnedDate())
                 .build();
 
         return itemRepository.findAll(spec, pageable).map(this::toDto);
@@ -131,9 +153,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public void checkPermission(Long currentUserId, Long itemId){
         ItemEntity item = get(itemId);
-        if (!item.getUser().getId().equals(currentUserId)){
-            throw new ForbiddenException("You can delete only your items");
-        }
+        UserEntity currentUser = userService.get(currentUserId);
+
+        if (!currentUser.getRole().equals(UserRole.ADMIN_ROLE) &&
+                !item.getUser().getId().equals(currentUserId))
+            throw new ForbiddenException("You can modify only your items");
     }
 
     public ItemDTO toDto(ItemEntity entity){

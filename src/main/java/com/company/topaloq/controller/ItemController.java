@@ -56,6 +56,14 @@ public class ItemController {
         return ResponseEntity.ok("Succesfully Saved!!!");
     }
 
+    @PutMapping("/return/{id}")
+    public ResponseEntity returnItem(HttpServletRequest request,
+                                     @PathVariable Long id){
+        UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request, ADMIN_ROLE, USER_ROLE);
+        itemService.returnItem(id, jwtDTO.getId());
+        return ResponseEntity.ok("Succesfully Returned!!!");
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity getById(HttpServletRequest request,
                                   @PathVariable Long id){

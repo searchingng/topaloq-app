@@ -6,6 +6,7 @@ import com.company.topaloq.entity.enums.UserRole;
 import io.jsonwebtoken.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class JwtUtil {
             throw new UnauthorizedException("Not Authorized (JwtDto is Null)");
 
         if (!List.of(roles).contains(jwtDTO.getRole())){
-            throw new ForbiddenException("This is Forbidden for you, allowed to " + roles);
+            throw new ForbiddenException("This is Forbidden for you");
         }
 
         return jwtDTO;

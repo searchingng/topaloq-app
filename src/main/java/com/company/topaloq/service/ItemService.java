@@ -16,6 +16,8 @@ public interface ItemService {
 
     void updateById(Long id, Long currnetUserId, ItemDTO dto);
 
+    void returnItem(Long id, Long currnetUserId);
+
     ItemEntity get(Long id);
 
     ItemDTO getById(Long id);

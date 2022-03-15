@@ -36,5 +36,6 @@ public class ItemEntity {
     private ItemType type = ItemType.OTHERS;
 
     private LocalDateTime createdDate = LocalDateTime.now();
+    private LocalDateTime returnedDate;
 
 }

@@ -31,14 +31,13 @@ public class ItemDTO {
 
     private String description;
 
-    @NotBlank(message = "Address can't be empty")
-    @NotNull(message = "Address can't be null")
     private String foundAddress;
 
     private Long userId;
 
-    @NotNull(message = "status should be FOUND Or LOST")
+    @NotNull(message = "status should be FOUND or LOST")
     private ItemStatus status;
     private ItemType type;
     private LocalDateTime createdDate;
+    private LocalDateTime returnedDate;
 }

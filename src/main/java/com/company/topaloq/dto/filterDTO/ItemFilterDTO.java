@@ -19,4 +19,7 @@ public class ItemFilterDTO {
     private LocalDate fromDate;
     private LocalDate toDate;
 
+    private LocalDate fromReturnedDate;
+    private LocalDate toReturnedDate;
+
 }
