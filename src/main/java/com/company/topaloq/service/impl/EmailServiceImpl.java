@@ -2,8 +2,10 @@ package com.company.topaloq.service.impl;
 
 import com.company.topaloq.config.jwt.JwtUtil;
 import com.company.topaloq.dto.EmailDTO;
+import com.company.topaloq.dto.ItemDTO;
 import com.company.topaloq.dto.UserDTO;
 import com.company.topaloq.entity.EmailEntity;
+import com.company.topaloq.entity.ItemEntity;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.entity.enums.EmailStatus;
 import com.company.topaloq.entity.enums.UserRole;
@@ -16,9 +18,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.stereotype.Service;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -72,11 +79,50 @@ public class EmailServiceImpl implements EmailService {
         return toDto(entity);
     }
 
+
+
     @Override
     public EmailDTO send(UserEntity user) {
         EmailDTO dto = save(user);
         send(dto.getSubject(), dto.getText(), dto.getEmail());
         return dto;
+    }
+
+    @Override
+    public void sendIdentityItems(ItemEntity entity, String email, List<ItemDTO> dtoList) throws MessagingException {
+        String status = entity.getStatus().name().toLowerCase();
+        String inverse = (status.equals("lost")) ? "found" : "lost";
+
+        String subject = "🔎 " + entity.getName() + " may be " + inverse +
+                ", that You have " + status + "!";
+
+        StringBuilder builder = new StringBuilder("<h1>" + status + " " + entity.getName());
+        builder.append(" might be items below:");
+        builder.append("</h1><br>");
+
+
+        dtoList.stream().forEach(i -> {
+            String jwt = JwtUtil.generateJwt(i.getId());
+
+            builder.append("<h2><a href=\"http://" + host +":8080/item/get/" + jwt + "\">");
+            builder.append("<font color=navy><b>" + i.getName() + "</b></font></a></h2>");
+            builder.append("<h3><font><i>" + i.getDescription() + "</i></font></h3>");
+            builder.append("<h3><font color=gray>" + i.getFoundAddress() + "</font></h3>");
+            builder.append("<br>");
+        });
+
+        MimeMessage message = javaMailSender.createMimeMessage();
+        message.setSubject(subject);
+//        message.setText(builder.toString());
+        message.setRecipients(Message.RecipientType.TO, email);
+        message.setContent(builder.toString(), "text/html");
+        javaMailSender.send(message);
+
+        /*SimpleMailMessage message = new SimpleMailMessage();
+        message.setSubject(subject);
+        message.setText(builder.toString());
+        message.setTo(email);*/
+
     }
 
     @Override
@@ -98,12 +144,12 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Page<EmailDTO> getAll(Pageable pageable) {
-        return null;
+        return emailRepository.findAll(pageable).map(this::toDto);
     }
 
     @Override
     public EmailDTO getById(Long id) {
-        return null;
+        return toDto(get(id));
     }
 
     private EmailDTO toDto(EmailEntity entity){

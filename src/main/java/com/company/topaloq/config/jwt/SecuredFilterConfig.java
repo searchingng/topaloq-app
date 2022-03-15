@@ -18,7 +18,8 @@ public class SecuredFilterConfig {
         FilterRegistrationBean bean = new FilterRegistrationBean();
         bean.setFilter(jwtTokenFilter);
         bean.addUrlPatterns("/user/*");
-        bean.addUrlPatterns("/item/*");
+        bean.addUrlPatterns("/item");
+        bean.addUrlPatterns("/item/return}");
         bean.addUrlPatterns("/message/*");
 
         return bean;

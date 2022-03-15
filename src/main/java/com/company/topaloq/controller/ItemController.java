@@ -71,6 +71,13 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getById(id));
     }
 
+    @GetMapping("/get/{jwt}")
+    public ResponseEntity<ItemDTO> getByJwtId(
+                                  @PathVariable String jwt){
+//        UserJwtDTO dto = JwtUtil.getCurrentUser(request);
+        return ResponseEntity.ok(itemService.getByJwtId(jwt));
+    }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity getByUserId(HttpServletRequest request,
                                   @PathVariable Long userId){

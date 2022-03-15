@@ -1,10 +1,12 @@
 package com.company.topaloq.service.impl;
 
+import com.company.topaloq.config.jwt.JwtUtil;
 import com.company.topaloq.dto.ItemDTO;
 import com.company.topaloq.dto.filterDTO.ItemFilterDTO;
 import com.company.topaloq.entity.ItemEntity;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.entity.enums.ItemStatus;
+import com.company.topaloq.entity.enums.ItemType;
 import com.company.topaloq.entity.enums.UserRole;
 import com.company.topaloq.exceptions.ForbiddenException;
 import com.company.topaloq.exceptions.ItemNotFoundException;
@@ -16,20 +18,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.company.topaloq.entity.enums.ItemStatus.FOUND;
+import static com.company.topaloq.entity.enums.ItemStatus.LOST;
 
 @Service
 public class ItemServiceImpl implements ItemService {
 
     private final UserServiceImpl userService;
     private final ItemRepository itemRepository;
+    private final EmailServiceImpl emailService;
 
-    public ItemServiceImpl(UserServiceImpl userService, ItemRepository itemRepository) {
+    public ItemServiceImpl(UserServiceImpl userService,
+                           ItemRepository itemRepository,
+                           EmailServiceImpl emailService) {
         this.userService = userService;
         this.itemRepository = itemRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -44,6 +54,13 @@ public class ItemServiceImpl implements ItemService {
         entity.setUser(user);
         if (!Objects.isNull(dto.getType())){
             entity.setType(dto.getType());
+        }
+
+        try {
+            emailService.sendIdentityItems(entity, entity.getUser().getEmail(),
+                    findByStatusAndType(entity.getStatus(), entity.getType()));
+        } catch (Exception e) {
+            System.out.println("Email exp");
         }
 
         itemRepository.save(entity);
@@ -111,6 +128,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    public ItemDTO getByJwtId(String jwt) {
+        Long id = JwtUtil.parseLongJwt(jwt);
+        return getById(id);
+    }
+
+    @Override
     public List<ItemDTO> getByUserId(Long userId) {
         List<ItemEntity> items = itemRepository.findByUser_Id(userId);
         return items.stream().map(this::toDto).collect(Collectors.toList());
@@ -158,6 +181,13 @@ public class ItemServiceImpl implements ItemService {
         if (!currentUser.getRole().equals(UserRole.ADMIN_ROLE) &&
                 !item.getUser().getId().equals(currentUserId))
             throw new ForbiddenException("You can modify only your items");
+    }
+
+    @Override
+    public List<ItemDTO> findByStatusAndType(ItemStatus status, ItemType type) {
+        status = (status.equals(LOST)) ? FOUND : LOST;
+        return itemRepository.findByStatusAndType(status, type)
+                .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     public ItemDTO toDto(ItemEntity entity){

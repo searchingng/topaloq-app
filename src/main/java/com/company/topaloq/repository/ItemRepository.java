@@ -1,6 +1,9 @@
 package com.company.topaloq.repository;
 
 import com.company.topaloq.entity.ItemEntity;
+import com.company.topaloq.entity.enums.ItemStatus;
+import com.company.topaloq.entity.enums.ItemType;
+import com.company.topaloq.entity.enums.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -12,5 +15,7 @@ public interface ItemRepository extends
         JpaSpecificationExecutor<ItemEntity> {
 
     List<ItemEntity> findByUser_Id(Long userId);
+
+    List<ItemEntity> findByStatusAndType(ItemStatus status, ItemType type);
 
 }
