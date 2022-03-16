@@ -190,6 +190,17 @@ public class ItemServiceImpl implements ItemService {
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Override
+    public long countByStatus(ItemStatus status) {
+        return itemRepository.countByStatus(status);
+    }
+
+    @Override
+    public List<ItemDTO> getLastByStatus(ItemStatus status) {
+        return itemRepository.findTop10ByStatusOrderByCreatedDate(status)
+                .stream().map(this::toDto).collect(Collectors.toList());
+    }
+
     public ItemDTO toDto(ItemEntity entity){
         ItemDTO dto = new ItemDTO();
         dto.setId(entity.getId());

@@ -4,6 +4,7 @@ import com.company.topaloq.config.jwt.JwtUtil;
 import com.company.topaloq.config.jwt.UserJwtDTO;
 import com.company.topaloq.dto.ItemDTO;
 import com.company.topaloq.dto.filterDTO.ItemFilterDTO;
+import com.company.topaloq.entity.enums.ItemStatus;
 import com.company.topaloq.service.ItemService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -99,6 +100,18 @@ public class ItemController {
                                                 HttpServletRequest request,
                                                 @RequestBody ItemFilterDTO dto){
         return ResponseEntity.ok(itemService.filter(pageable, dto));
+    }
+
+    @GetMapping("/count/{status}")
+    public ResponseEntity<Long> countByStatus(HttpServletRequest request,
+                                              @PathVariable ItemStatus status){
+        return ResponseEntity.ok(itemService.countByStatus(status));
+    }
+
+    @GetMapping("/last/{status}")
+    public ResponseEntity<List<ItemDTO>> getLast10ByStatus(HttpServletRequest request,
+                                                  @PathVariable ItemStatus status){
+        return ResponseEntity.ok(itemService.getLastByStatus(status));
     }
 
 }

@@ -18,4 +18,8 @@ public interface ItemRepository extends
 
     List<ItemEntity> findByStatusAndType(ItemStatus status, ItemType type);
 
+    long countByStatus(ItemStatus status);
+
+    List<ItemEntity> findTop10ByStatusOrderByCreatedDate(ItemStatus status);
+
 }

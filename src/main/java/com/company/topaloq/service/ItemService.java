@@ -37,4 +37,8 @@ public interface ItemService {
 
     List<ItemDTO> findByStatusAndType(ItemStatus status, ItemType type);
 
+    long countByStatus(ItemStatus status);
+
+    List<ItemDTO> getLastByStatus(ItemStatus status);
+
 }
