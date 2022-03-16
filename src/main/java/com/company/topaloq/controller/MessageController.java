@@ -15,6 +15,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static com.company.topaloq.entity.enums.UserRole.ADMIN_ROLE;
 import static com.company.topaloq.entity.enums.UserRole.USER_ROLE;
 
@@ -72,6 +74,13 @@ public class MessageController {
                                                    @RequestBody MessageFilterDTO dto){
         UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request, ADMIN_ROLE);
         return ResponseEntity.ok(messageService.filter(pageable, dto));
+    }
+
+    @GetMapping("/item/{itemId}")
+    public ResponseEntity<List<MessageDTO>> filter(HttpServletRequest request,
+                                                   @PathVariable Long itemId){
+        UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request);
+        return ResponseEntity.ok(messageService.getByItemId(itemId));
     }
 
 }

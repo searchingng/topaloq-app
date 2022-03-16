@@ -130,15 +130,16 @@ public class MessageServiceImpl implements MessageService {
         return messageRepository.findAll(spec, pageable).map(this::toDto);
     }
 
-    /*public List<MessageDTO> getByUserId(Long userId) {
+    public List<MessageDTO> getByUserId(Long userId) {
         return messageRepository.findByUser_Id(userId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
+    @Override
     public List<MessageDTO> getByItemId(Long itemId) {
         return messageRepository.findByItem_Id(itemId)
                 .stream().map(this::toDto).collect(Collectors.toList());
-    }*/
+    }
 
     private MessageDTO toDto(MessageEntity entity){
         MessageDTO dto = new MessageDTO();
