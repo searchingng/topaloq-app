@@ -37,6 +37,73 @@ public class EmailServiceImpl implements EmailService {
     @Value("${server.host}")
     private String host;
 
+    private final String bootstrap = ".h2{\n" +
+            "              font-size: 30px;\n" +
+            "              font-weight: bold;\n" +
+            "          }\n" +
+            "          .h3{\n" +
+            "              font-size: 25px;\n" +
+            "              margin: auto;\n" +
+            "              font-weight: bolder;\n" +
+            "              color: rgb(8, 77, 8);\n" +
+            "          }\n" +
+            "          .h3{\n" +
+            "              font-size: 20px;\n" +
+            "              margin: auto;\n" +
+            "              font-weight: bolder;\n" +
+            "              color: rgb(1, 29, 8);\n" +
+            "          }\n" +
+            "          .float-right{\n" +
+            "              justify-items: en;\n" +
+            "          }\n" +
+            "          .card{\n" +
+            "              border: 2px solid rgb(0, 0, 0);\n" +
+            "              border-radius: 8px;\n" +
+            "          }\n" +
+            "          .card-header{\n" +
+            "              padding: 10px;\n" +
+            "              background-color: rgb(189, 228, 215);\n" +
+            "              border-radius: 7px;\n" +
+            "          }\n" +
+            "          \n" +
+            "          .card-body{\n" +
+            "              padding: 10px;\n" +
+            "              border-radius: 7px;\n" +
+            "          }\n" +
+            "          .alert-warning {\n" +
+            "            background-color: rgb(215, 250, 213);\n" +
+            "          }\n" +
+            "          .m-2{\n" +
+            "            margin: 10px;\n" +
+            "          }\n" +
+            "          .m-3{\n" +
+            "            margin: 3px;\n" +
+            "          }\n" +
+            "          .m-1{\n" +
+            "            margin: 7px;\n" +
+            "          }\n" +
+            "          .p-1{\n" +
+            "            padding: 5px;\n" +
+            "          }\n" +
+            "          .btn{\n" +
+            "            background-color: rgb(63, 190, 95);\n" +
+            "            padding: 4px;\n" +
+            "            border: 2px solid green;\n" +
+            "            border-radius: 7px;\n" +
+            "            \n" +
+            "          }\n" +
+            "          .font-italic{\n" +
+            "            font-style: italic;\n" +
+            "          }\n" +
+            "          a{\n" +
+            "            text-decoration: none;\n" +
+            "            font-weight: bolder;\n" +
+            "            color: rgb(253, 255, 253);\n" +
+            "          }\n" +
+            "          .loc{\n" +
+            "            font-weight: bolder;\n" +
+            "          }";
+
     public EmailServiceImpl(EmailRepository emailRepository,
                             JavaMailSender javaMailSender,
                             UserServiceImpl userService) {
@@ -96,25 +163,37 @@ public class EmailServiceImpl implements EmailService {
         String subject = "🔎 " + entity.getName() + " may be " + inverse +
                 ", that You have " + status + "!";
 
-        StringBuilder builder = new StringBuilder("<h1>" + status + " " + entity.getName());
-        builder.append(" might be items below:");
-        builder.append("</h1><br>");
+        StringBuilder builder = new StringBuilder("<html><head> <style>" + bootstrap + "</style>\n");
 
+        builder.append("</head><body><p class=\"h2 text-success m-3\">" + status + " " + entity.getName());
+        builder.append(" might be one of items below:");
+        builder.append("</p>\n");
 
         dtoList.stream().forEach(i -> {
             String jwt = JwtUtil.generateJwt(i.getId());
 
-            builder.append("<h2><a href=\"http://" + host +":8080/item/get/" + jwt + "\">");
-            builder.append("<font color=navy><b>" + i.getName() + "</b></font></a></h2>");
-            builder.append("<h3><font><i>" + i.getDescription() + "</i></font></h3>");
-            builder.append("<h3><font color=gray>" + i.getFoundAddress() + "</font></h3>");
-            builder.append("<br>");
+            builder.append("<div class=\"card m-2\">\n");
+            builder.append("<div class=\"card-header p-1\">\n");
+            builder.append("<span class=\"badge badge-pill badge-warning float-right\">" +
+                    i.getCreatedDate().toLocalDate() +"</span>\n");
+            builder.append("<p class=\"h3 text-success\">" + i.getName() + "</p></div>\n");
+            builder.append("<div class=\"card-body p-1 alert-warning\">\n");
+            builder.append("<p class=\"m-1 h5 font-italic\">" + i.getDescription() + "</p>\n");
+            if (i.getFoundAddress() != null) {
+                builder.append("<p class=\"m-1 h5 loc\">" + i.getFoundAddress() + "</p>\n");
+            }
+            builder.append("<a class=\"btn btn-success m-1\" href=\"");
+            builder.append("http://" + host +":8080/item/get/" + jwt +"\">Show More</a></div>\n");
+            builder.append("</div><br>");
         });
+
+        builder.append("</body></html>");
 
         MimeMessage message = javaMailSender.createMimeMessage();
         message.setSubject(subject);
 //        message.setText(builder.toString());
         message.setRecipients(Message.RecipientType.TO, email);
+        System.out.println(builder.toString());
         message.setContent(builder.toString(), "text/html");
         javaMailSender.send(message);
 
