@@ -8,6 +8,7 @@ import com.company.topaloq.service.ItemService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
 import io.swagger.models.auth.AuthorizationValue;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,8 @@ import springfox.documentation.service.AuthorizationScope;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+
+import java.util.List;
 
 import static com.company.topaloq.entity.enums.UserRole.ADMIN_ROLE;
 import static com.company.topaloq.entity.enums.UserRole.USER_ROLE;
@@ -33,14 +36,14 @@ public class ItemController {
     @ApiOperation(value = "create Item", authorizations = {
             @Authorization(value = "bearer {token}")
     })
-    public ResponseEntity createItem(HttpServletRequest request,
+    public ResponseEntity<ItemDTO> createItem(HttpServletRequest request,
                                      @Valid @RequestBody ItemDTO dto){
         UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request);
         return ResponseEntity.ok(itemService.createItem(dto, jwtDTO.getId()));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteById(HttpServletRequest request,
+    public ResponseEntity<String> deleteById(HttpServletRequest request,
                                      @PathVariable Long id){
         UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request, ADMIN_ROLE, USER_ROLE);
         itemService.deleteById(id, jwtDTO.getId());
@@ -48,7 +51,7 @@ public class ItemController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity updateById(HttpServletRequest request,
+    public ResponseEntity<String> updateById(HttpServletRequest request,
                                      @PathVariable Long id,
                                      @RequestBody ItemDTO dto){
         UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request, ADMIN_ROLE, USER_ROLE);
@@ -57,7 +60,7 @@ public class ItemController {
     }
 
     @PutMapping("/return/{id}")
-    public ResponseEntity returnItem(HttpServletRequest request,
+    public ResponseEntity<String> returnItem(HttpServletRequest request,
                                      @PathVariable Long id){
         UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request, ADMIN_ROLE, USER_ROLE);
         itemService.returnItem(id, jwtDTO.getId());
@@ -65,7 +68,7 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity getById(HttpServletRequest request,
+    public ResponseEntity<ItemDTO> getById(HttpServletRequest request,
                                   @PathVariable Long id){
 //        UserJwtDTO dto = JwtUtil.getCurrentUser(request);
         return ResponseEntity.ok(itemService.getById(id));
@@ -79,22 +82,22 @@ public class ItemController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity getByUserId(HttpServletRequest request,
-                                  @PathVariable Long userId){
+    public ResponseEntity<List<ItemDTO>> getByUserId(HttpServletRequest request,
+                                                     @PathVariable Long userId){
 //        UserJwtDTO dto = JwtUtil.getCurrentUser(request);
         return ResponseEntity.ok(itemService.getByUserId(userId));
     }
 
     @GetMapping()
-    public ResponseEntity getAll(Pageable pageable,
+    public ResponseEntity<Page<ItemDTO>> getAll(Pageable pageable,
                                  HttpServletRequest request){
         return ResponseEntity.ok(itemService.getAll(pageable));
     }
 
     @GetMapping("/filter")
-    public ResponseEntity filter(Pageable pageable,
-                                 HttpServletRequest request,
-                                 @RequestBody ItemFilterDTO dto){
+    public ResponseEntity<Page<ItemDTO>> filter(Pageable pageable,
+                                                HttpServletRequest request,
+                                                @RequestBody ItemFilterDTO dto){
         return ResponseEntity.ok(itemService.filter(pageable, dto));
     }
 
