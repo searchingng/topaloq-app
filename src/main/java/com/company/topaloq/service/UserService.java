@@ -1,5 +1,6 @@
 package com.company.topaloq.service;
 
+import com.company.topaloq.dto.PhotoDTO;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.dto.UserDTO;
 import com.company.topaloq.dto.filterDTO.UserFilterDTO;
@@ -17,6 +18,8 @@ public interface UserService {
     UserEntity get(Long id);
 
     UserDTO getById(Long id);
+
+    PhotoDTO getPhotoByUserId(Long userId);
 
     Page<UserDTO> getAll(Pageable pageable);
 

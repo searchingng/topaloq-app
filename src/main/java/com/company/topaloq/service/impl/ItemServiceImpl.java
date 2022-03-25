@@ -2,8 +2,10 @@ package com.company.topaloq.service.impl;
 
 import com.company.topaloq.config.jwt.JwtUtil;
 import com.company.topaloq.dto.ItemDTO;
+import com.company.topaloq.dto.PhotoDTO;
 import com.company.topaloq.dto.filterDTO.ItemFilterDTO;
 import com.company.topaloq.entity.ItemEntity;
+import com.company.topaloq.entity.PhotoEntity;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.entity.enums.ItemStatus;
 import com.company.topaloq.entity.enums.ItemType;
@@ -13,6 +15,7 @@ import com.company.topaloq.exceptions.ItemNotFoundException;
 import com.company.topaloq.repository.ItemRepository;
 import com.company.topaloq.service.ItemService;
 import com.company.topaloq.spec.SpecificationBuilder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,25 +25,21 @@ import javax.mail.MessagingException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.company.topaloq.entity.enums.ItemStatus.FOUND;
 import static com.company.topaloq.entity.enums.ItemStatus.LOST;
 
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
 
     private final UserServiceImpl userService;
     private final ItemRepository itemRepository;
     private final EmailServiceImpl emailService;
+    private final AttachServiceImpl attachService;
 
-    public ItemServiceImpl(UserServiceImpl userService,
-                           ItemRepository itemRepository,
-                           EmailServiceImpl emailService) {
-        this.userService = userService;
-        this.itemRepository = itemRepository;
-        this.emailService = emailService;
-    }
 
     @Override
     public ItemDTO createItem(ItemDTO dto, Long userId) {
@@ -52,6 +51,10 @@ public class ItemServiceImpl implements ItemService {
         entity.setFoundAddress(dto.getFoundAddress());
         entity.setStatus(dto.getStatus());
         entity.setUser(user);
+        entity.setPhotos(
+                dto.getPhotos().stream().map(attachService::get)
+                        .collect(Collectors.toSet())
+        );
         if (!Objects.isNull(dto.getType())){
             entity.setType(dto.getType());
         }
@@ -69,6 +72,13 @@ public class ItemServiceImpl implements ItemService {
         dto.setCreatedDate(entity.getCreatedDate());
 
         return dto;
+    }
+
+    @Override
+    public List<PhotoDTO> getPhotosByItemId(Long itemId){
+        ItemEntity item = get(itemId);
+        return item.getPhotos().stream()
+                .map(attachService::toDto).collect(Collectors.toList());
     }
 
     @Override
@@ -211,6 +221,8 @@ public class ItemServiceImpl implements ItemService {
         dto.setType(entity.getType());
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setUserId(entity.getUser().getId());
+        dto.setPhotos(entity.getPhotos()
+                .stream().map(PhotoEntity::getId).collect(Collectors.toSet()));
 
         return dto;
     }

@@ -29,6 +29,7 @@ public class UserDTO {
 
     private LocalDateTime createdDate = LocalDateTime.now();
     private String jwt;
+    private Long photoId;
 
     public UserDTO(UserEntity entity) {
         this.id = entity.getId();
@@ -40,5 +41,6 @@ public class UserDTO {
         this.role = entity.getRole();
         this.status = entity.getStatus();
         this.createdDate = entity.getCreatedDate();
+        this.photoId = entity.getPhoto().getId();
     }
 }

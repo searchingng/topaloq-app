@@ -4,6 +4,7 @@ import com.company.topaloq.dto.auth.AuthDTO;
 import com.company.topaloq.dto.auth.RegistrationDTO;
 import com.company.topaloq.config.jwt.JwtUtil;
 import com.company.topaloq.entity.EmailEntity;
+import com.company.topaloq.entity.PhotoEntity;
 import com.company.topaloq.entity.enums.UserStatus;
 import com.company.topaloq.exceptions.BadRequestException;
 import com.company.topaloq.exceptions.UnauthorizedException;
@@ -12,20 +13,17 @@ import com.company.topaloq.dto.UserDTO;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.repository.UserRepository;
 import com.company.topaloq.entity.enums.UserRole;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final EmailServiceImpl emailService;
-
-    public AuthServiceImpl(UserRepository userRepository, EmailServiceImpl emailService) {
-        this.userRepository = userRepository;
-        this.emailService = emailService;
-    }
-
+    private final AttachServiceImpl attachService;
 
     @Override
     public UserDTO registration(RegistrationDTO dto) {
@@ -39,6 +37,8 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.findByEmail(dto.getEmail()).isPresent())
             throw new BadRequestException("Email is already exists");
 
+        PhotoEntity photo = attachService.get(dto.getPhotoId());
+
         String password = DigestUtils.md5Hex(dto.getPassword());
 
         UserEntity user = new UserEntity();
@@ -48,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
         user.setLogin(dto.getLogin());
         user.setEmail(dto.getEmail());
         user.setPassword(password);
+        user.setPhoto(photo);
         user.setRole(UserRole.USER_ROLE);
         user.setStatus(UserStatus.CREATED);
 

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity(name = "item")
 @Setter
@@ -37,5 +38,12 @@ public class ItemEntity {
 
     private LocalDateTime createdDate = LocalDateTime.now();
     private LocalDateTime returnedDate;
+
+    @ManyToMany
+    @JoinTable(name = "item_photo",
+            joinColumns = {@JoinColumn(name = "item_id")},
+            inverseJoinColumns = {@JoinColumn(name = "photo_id")}
+    )
+    private Set<PhotoEntity> photos;
 
 }

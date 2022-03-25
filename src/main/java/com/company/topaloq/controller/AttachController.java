@@ -1,9 +1,8 @@
 package com.company.topaloq.controller;
 
-import com.company.topaloq.config.jwt.JwtUtil;
-import com.company.topaloq.config.jwt.UserJwtDTO;
 import com.company.topaloq.dto.PhotoDTO;
-import com.company.topaloq.service.impl.AttachService;
+import com.company.topaloq.entity.enums.PhotoType;
+import com.company.topaloq.service.AttachService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,13 +23,13 @@ public class AttachController {
         this.attachService = attachService;
     }
 
-    @PostMapping("/upload/{itemId}")
+    @PostMapping("/upload/{type}")
     public ResponseEntity<PhotoDTO> upload(HttpServletRequest request,
                                          @RequestParam("file") MultipartFile file,
-                                         @PathVariable("itemId") Long itemId){
+                                         @PathVariable("type") PhotoType type){
 
 //        UserJwtDTO jwtDTO = JwtUtil.getCurrentUser(request);
-        PhotoDTO fileName = attachService.saveFile(file, itemId);
+        PhotoDTO fileName = attachService.saveFile(file, type);
         return ResponseEntity.ok(fileName);
     }
 
@@ -44,7 +43,7 @@ public class AttachController {
         return ResponseEntity.ok(attachService.getMainByItemId(itemId));
     }
 
-    @GetMapping(value = "/load/{token}", produces = "image/png")
+    @GetMapping(value = "/load/{token}", produces = "image/jpeg")
     public byte[] display(@PathVariable String token){
         return attachService.loadAttachByToken(token);
     }
@@ -55,6 +54,15 @@ public class AttachController {
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
                 "attachment; fileName=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @DeleteMapping("/delete/{token}")
+    public ResponseEntity<String> deleteByToken(HttpServletRequest request,
+                                @PathVariable String token){
+
+        attachService.delete(token);
+        return ResponseEntity.ok("Successfully Deleted");
+
     }
 
 }

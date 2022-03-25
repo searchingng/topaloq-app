@@ -1,5 +1,6 @@
 package com.company.topaloq.entity;
 
+import com.company.topaloq.entity.enums.PhotoType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -20,15 +21,14 @@ public class PhotoEntity {
 
     private String path;
 
+    private String extension;
+
     private Long size;
 
     private String contentType;
 
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private ItemEntity item;
-
-    private int index;
+    @Enumerated(EnumType.STRING)
+    private PhotoType type;
 
     private String url;
 

@@ -1,5 +1,6 @@
 package com.company.topaloq.dto;
 
+import com.company.topaloq.entity.PhotoEntity;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.entity.enums.ItemStatus;
 import com.company.topaloq.entity.enums.ItemType;
@@ -16,6 +17,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -40,4 +42,6 @@ public class ItemDTO {
     private ItemType type;
     private LocalDateTime createdDate;
     private LocalDateTime returnedDate;
+
+    private Set<Long> photos;
 }

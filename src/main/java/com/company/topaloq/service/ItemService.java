@@ -1,6 +1,7 @@
 package com.company.topaloq.service;
 
 import com.company.topaloq.dto.ItemDTO;
+import com.company.topaloq.dto.PhotoDTO;
 import com.company.topaloq.dto.filterDTO.ItemFilterDTO;
 import com.company.topaloq.entity.ItemEntity;
 import com.company.topaloq.entity.enums.ItemStatus;
@@ -20,6 +21,8 @@ public interface ItemService {
     void updateById(Long id, Long currnetUserId, ItemDTO dto);
 
     void returnItem(Long id, Long currnetUserId);
+
+    List<PhotoDTO> getPhotosByItemId(Long itemId);
 
     ItemEntity get(Long id);
 

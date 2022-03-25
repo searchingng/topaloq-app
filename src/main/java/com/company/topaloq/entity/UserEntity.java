@@ -33,4 +33,8 @@ public class UserEntity {
 
     private LocalDateTime createdDate = LocalDateTime.now();
 
+    @OneToOne
+    @JoinColumn(name = "photo_id")
+    private PhotoEntity photo;
+
 }

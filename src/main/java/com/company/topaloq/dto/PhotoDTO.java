@@ -1,5 +1,6 @@
 package com.company.topaloq.dto;
 
+import com.company.topaloq.entity.enums.PhotoType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
@@ -19,9 +20,9 @@ public class PhotoDTO {
 
     private String contentType;
 
-    private Long itemId;
+    private PhotoType type;
 
-    private int index;
+    private String extension;
 
     private LocalDateTime createdDate;
 

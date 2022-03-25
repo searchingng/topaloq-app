@@ -1,8 +1,11 @@
 package com.company.topaloq.service.impl;
 
+import com.company.topaloq.dto.PhotoDTO;
+import com.company.topaloq.entity.PhotoEntity;
 import com.company.topaloq.entity.UserEntity;
 import com.company.topaloq.exceptions.BadRequestException;
 import com.company.topaloq.exceptions.ItemNotFoundException;
+import com.company.topaloq.service.AttachService;
 import com.company.topaloq.service.UserService;
 import com.company.topaloq.spec.SpecificationBuilder;
 import com.company.topaloq.dto.UserDTO;
@@ -20,9 +23,11 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final AttachServiceImpl attachService;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, AttachServiceImpl attachService) {
         this.userRepository = userRepository;
+        this.attachService = attachService;
     }
 
     @Override
@@ -34,19 +39,22 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByLogin(dto.getLogin()).isPresent())
             throw new BadRequestException("Login is already exists");
 
+        PhotoEntity photo = attachService.get(dto.getPhotoId());
+
         String password = DigestUtils.md5Hex(dto.getPassword());
 
-        UserEntity user = new UserEntity();
-        user.setName(dto.getName());
-        user.setSurname(dto.getSurname());
-        user.setPhone(dto.getPhone());
-        user.setLogin(dto.getLogin());
-        user.setPassword(password);
-        user.setRole(dto.getRole());
+        UserEntity entity = new UserEntity();
+        entity.setName(dto.getName());
+        entity.setSurname(dto.getSurname());
+        entity.setPhone(dto.getPhone());
+        entity.setLogin(dto.getLogin());
+        entity.setPassword(password);
+        entity.setRole(dto.getRole());
+        entity.setPhoto(photo);
 
-        userRepository.save(user);
+        userRepository.save(entity);
 
-        return new UserDTO(user);
+        return toDto(entity);
 
     }
 
@@ -106,6 +114,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public PhotoDTO getPhotoByUserId(Long userId) {
+        UserEntity user = get(userId);
+        return attachService.toDto(user.getPhoto());
+    }
+
+    @Override
     public Page<UserDTO> getAll(Pageable pageable) {
         return userRepository.findAll(pageable).map(this::toDto);
     }
@@ -138,6 +152,7 @@ public class UserServiceImpl implements UserService {
         dto.setPhone(entity.getPhone());
         dto.setRole(entity.getRole());
         dto.setCreatedDate(entity.getCreatedDate());
+        dto.setPhotoId(entity.getPhoto().getId());
         return dto;
     }
 }

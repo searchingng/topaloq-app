@@ -1,10 +1,11 @@
 package com.company.topaloq.service.impl;
 
 import com.company.topaloq.dto.PhotoDTO;
-import com.company.topaloq.entity.ItemEntity;
 import com.company.topaloq.entity.PhotoEntity;
+import com.company.topaloq.entity.enums.PhotoType;
 import com.company.topaloq.exceptions.ItemNotFoundException;
 import com.company.topaloq.repository.PhotoRepository;
+import com.company.topaloq.service.AttachService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -19,7 +20,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
@@ -27,47 +30,43 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class AttachServiceImpl implements AttachService{
+public class AttachServiceImpl implements AttachService {
 
     private final PhotoRepository photoRepository;
-    private final ItemServiceImpl itemService;
 
     @Value("${server.host}")
     private String host;
 
-    public AttachServiceImpl(PhotoRepository photoRepository, ItemServiceImpl itemService) {
+    @Value("${attach.upload}")
+    private String uploadFolder;
+
+    public AttachServiceImpl(PhotoRepository photoRepository){
         this.photoRepository = photoRepository;
-        this.itemService = itemService;
     }
 
     @Override
-    public PhotoDTO saveFile(MultipartFile multipart, Long itemId){
-        ItemEntity item = itemService.get(itemId);
+    public PhotoDTO saveFile(MultipartFile multipart, PhotoType type){
         LocalDateTime dateTime = LocalDateTime.now();
 
-        File folder = new File("uploads/" + dateTime.getYear() + "/" +
-                dateTime.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + "/");
+        File folder = new File(uploadFolder + "/" + getFolder() + "/");
 
         if (!folder.exists()){
             folder.mkdirs();
         }
 
-        int point = multipart.getOriginalFilename().lastIndexOf(".");
-        String extension = multipart.getOriginalFilename().substring(point + 1);
+        String extension = getExtension(multipart.getOriginalFilename());
         String token = UUID.randomUUID().toString();
 
         PhotoEntity entity = new PhotoEntity();
-        entity.setName(token + "." + extension);
+        entity.setName(multipart.getOriginalFilename());
         entity.setContentType(multipart.getContentType());
         entity.setSize(multipart.getSize());
+        entity.setExtension(extension);
+        entity.setType(type);
         entity.setCreatedDate(LocalDateTime.now());
-        entity.setItem(item);
-        entity.setPath(folder.getPath() + "\\" +  entity.getName());
+        entity.setPath(folder.getPath() + "\\" +  token + "." + extension);
         entity.setToken(token);
         entity.setUrl("http://" + host + ":8080/attach/load/" + token);
-
-        int index = photoRepository.countByItem_Id(itemId);
-        entity.setIndex(index);
 
         Path path = Paths.get(entity.getPath());
 
@@ -83,6 +82,13 @@ public class AttachServiceImpl implements AttachService{
 
     PhotoEntity get(String token){
         return photoRepository.findByToken(token)
+                .orElseThrow(() -> new ItemNotFoundException("Pic Not Found!!"));
+    }
+
+    PhotoEntity get(Long id){
+        if (id == null)
+            return null;
+        return photoRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("Pic Not Found!!"));
     }
 
@@ -102,15 +108,18 @@ public class AttachServiceImpl implements AttachService{
 
     @Override
     public List<PhotoDTO> loadAttachByItemId(Long itemId) {
-        return photoRepository.findByItem_Id(itemId).stream()
-                .map(this::toDto).collect(Collectors.toList());
+        return null;//photoRepository.findByItem_Id(itemId).stream()
+//                .map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     public PhotoDTO getMainByItemId(Long itemId) {
-        return photoRepository.findByItem_IdAndIndex(itemId, 12_541_452L)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("LAL"));
+        return null;//photoRepository.findByItem_IdAndIndex(itemId, 0L)
+//                .map(this::toDto).orElseThrow(() -> new RuntimeException("LAL"));
+    }
+
+    public PhotoDTO getById(Long id) {
+        return toDto(get(id));
     }
 
     @Override
@@ -128,18 +137,44 @@ public class AttachServiceImpl implements AttachService{
         }
     }
 
+    @Override
+    public void delete(String token) {
+
+        PhotoEntity photo = get(token);
+        File file = new File(photo.getPath());
+
+        if (file.exists()){
+            file.delete();
+            photoRepository.delete(photo);
+        }
+    }
+
+    private String getExtension(String name){
+        int point = name.lastIndexOf(".");
+        return name.substring(point + 1);
+    }
+
+    private String getFolder(){
+        String folder = "";
+        LocalDate date = LocalDate.now();
+        return date.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+    }
+
     public PhotoDTO toDto(PhotoEntity entity){
+        if (entity == null)
+            return null;
+
         PhotoDTO dto = new PhotoDTO();
         dto.setId(entity.getId());
         dto.setCreatedDate(entity.getCreatedDate());
         dto.setName(entity.getName());
         dto.setPath(entity.getPath());
         dto.setSize(entity.getSize());
-        dto.setIndex(entity.getIndex());
-        dto.setItemId(entity.getItem().getId());
+        dto.setType(entity.getType());
         dto.setUrl(entity.getUrl());
         dto.setToken(entity.getToken());
         dto.setContentType(entity.getContentType());
+        dto.setExtension(entity.getExtension());
         return dto;
     }
 

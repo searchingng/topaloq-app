@@ -29,4 +29,6 @@ public class RegistrationDTO {
 
     @NotNull(message = "Phone is required")
     private String phone;
+
+    private Long photoId;
 }
